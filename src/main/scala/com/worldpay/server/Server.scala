@@ -1,4 +1,4 @@
-package com.worldpay
+package com.worldpay.server
 
 import akka.http.scaladsl.Http
 
