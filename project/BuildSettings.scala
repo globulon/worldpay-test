@@ -14,7 +14,5 @@ trait BuildSettings { self: Versions ⇒
     shellPrompt   := {  Project.extract(_).currentRef.project + "> " }
   )
 
-  final protected def allJavaOptions: Seq[sbt.Def.SettingsDefinition] = Seq(
-    javaOptions in Test += "-Dconfig.file=src/test/resources/test.conf"
-  )
+  final protected def allJavaOptions: Seq[sbt.Def.SettingsDefinition] = Seq.empty
 }
