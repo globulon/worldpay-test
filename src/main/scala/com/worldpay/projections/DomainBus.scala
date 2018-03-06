@@ -30,7 +30,7 @@ case class OfferDeleted(id: Long) extends DomainEvent
 case class OfferCanceled(id: Long) extends DomainEvent
 
 sealed trait ProjectionState extends FSMState
-case object Init extends ProjectionState { override def identifier: String = "Init" }
+//case object Init extends ProjectionState { override def identifier: String = "Init" }
 case object Running extends ProjectionState { override def identifier: String = "Running" }
 
 
@@ -39,31 +39,31 @@ protected[projections] class DomainBus extends PersistentFSM[ProjectionState, Of
 
   override def domainEventClassTag: ClassTag[projections.DomainEvent] = classTag[projections.DomainEvent]
 
-  startWith(Init, OffersProjection())
+  startWith(Running, OffersProjection())
 
-
-  when(Init) {
-    case Event(CreateOffer(p, ds, d), OffersProjection(_, nextId)) ⇒
-      goto(Running) applying OfferCreated(nextId, p, ds, d) forMax(1 second)
-    case Event(UpdateOffer(id, p, ds), OffersProjection(_, _)) ⇒
-      goto(Running) applying OfferUpdated(id, p, ds) forMax(1 second)
-    case Event(DeleteOffer(id), OffersProjection(_, _)) ⇒
-      goto(Running) applying OfferDeleted(id) forMax(1 second)
-    case Event(CancelOffer(id), OffersProjection(_, _)) ⇒
-      goto(Running) applying OfferCanceled(id) forMax(1 second)
-    case Event(Shutdown(), _) ⇒
-      stop()
-  }
+//  when(Init) {
+//    case Event(CreateOffer(p, ds, d), OffersProjection(_, nextId)) ⇒
+//      val snd = sender
+//      goto(Running) applying OfferCreated(nextId, p, ds, d) forMax(1 second)
+//    case Event(UpdateOffer(id, p, ds), OffersProjection(_, _)) ⇒
+//      goto(Running) applying OfferUpdated(id, p, ds) forMax(1 second)
+//    case Event(DeleteOffer(id), OffersProjection(_, _)) ⇒
+//      goto(Running) applying OfferDeleted(id) forMax(1 second)
+//    case Event(CancelOffer(id), OffersProjection(_, _)) ⇒
+//      goto(Running) applying OfferCanceled(id) forMax(1 second)
+//    case Event(Shutdown(), _) ⇒
+//      stop()
+//  }
 
   when(Running) {
     case Event(CreateOffer(p, ds, d), OffersProjection(_, nextId)) ⇒
       stay applying OfferCreated(nextId, p, ds, d) forMax(1 second)
-    case Event(UpdateOffer(id, p, ds), _) ⇒
-      stay applying OfferUpdated(id, p, ds) forMax(1 second)
-    case Event(DeleteOffer(id), _) ⇒
-      stay applying OfferDeleted(id) forMax(1 second)
-    case Event(CancelOffer(id), _) ⇒
-      stay applying OfferCanceled(id) forMax(1 second)
+    case Event(UpdateOffer(id, p, ds), projection) ⇒
+      projection.get(id).map { _ ⇒ stay applying OfferUpdated(id, p, ds) forMax(1 second) }.getOrElse(stay)
+    case Event(DeleteOffer(id), projection) ⇒
+      projection.get(id).map { _ ⇒ stay applying OfferDeleted(id) forMax(1 second) }.getOrElse(stay)
+    case Event(CancelOffer(id), projection) ⇒
+      projection.get(id).map { _ ⇒ stay applying OfferCanceled(id) forMax(1 second) }.getOrElse(stay)
     case Event(GetOffers(), projection) ⇒
       stay replying Offers(projection.all)
     case Event(GetOffer(byId), projection) ⇒
@@ -73,11 +73,12 @@ protected[projections] class DomainBus extends PersistentFSM[ProjectionState, Of
   }
 
   override def applyEvent(domainEvent: projections.DomainEvent, projection: OffersProjection): OffersProjection = domainEvent match {
-    case OfferCreated(id, p, ds, d) ⇒ projection.create(id)(p, ds, d)
+    case OfferCreated(id, p, ds, d) ⇒
+      val proj = projection.create(id)(p, ds, d)
+      sender ! Offers(proj.get(id).toList)
+      proj
     case OfferUpdated(id, p, ds) ⇒ projection.update(id)(p, ds)
     case OfferDeleted(byId) ⇒ projection.delete(byId)
     case OfferCanceled(byId) ⇒ projection.cancel(byId)
-
   }
-
 }

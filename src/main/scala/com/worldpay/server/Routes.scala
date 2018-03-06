@@ -28,8 +28,8 @@ trait Routes extends DTOFormats with DefaultJsonProtocol {
     post {
       entity(as[OfferCreation]) { request ⇒
         onComplete(app.controller ? Push(request)) {
-          case util.Success(http.Created(offer)) ⇒ complete((OK, List(offer)))
-          case util.Success(_) ⇒ complete((NotAcceptable, Error("Unexpected result")))
+          case util.Success(http.Found(List(offer))) ⇒ complete((OK, List(offer)))
+          case util.Success(res) ⇒ complete((NotAcceptable, Error(s"Unexpected result $res")))
           case util.Failure(exception) ⇒ complete((InternalServerError, Error(exception.getMessage)))
         }
       }
@@ -39,9 +39,9 @@ trait Routes extends DTOFormats with DefaultJsonProtocol {
   private def putOffer(app: Application)(implicit ec: ExecutionContext, d: Timeout): Route = pathPrefix("offer") {
     path(LongNumber) { value ⇒
       put {
-        entity(as[OfferCreation]) { desc ⇒
+        entity(as[OfferUpdate]) { desc ⇒
           complete {
-            app.controller ! Put(OfferID(value), desc)
+            app.controller ! Update(OfferID(value), desc)
             (Accepted, Processed())
           }
         }
@@ -65,8 +65,8 @@ trait Routes extends DTOFormats with DefaultJsonProtocol {
     path(LongNumber) { value ⇒
       get {
         onComplete(app.controller ? Get(OfferID(value))) {
-          case util.Success(http.Found(Nil)) ⇒ complete((NotFound, http.Found(Nil)))
-          case util.Success(http.Found(offers)) ⇒ complete((OK, http.Found(offers)))
+          case util.Success(http.Found(Nil)) ⇒ complete((NotFound, Nil))
+          case util.Success(http.Found(offers)) ⇒ complete((OK, offers))
           case util.Success(_) ⇒ complete((NotAcceptable, Error("Unexpected result")))
           case util.Failure(exception) ⇒ complete((InternalServerError, Error(exception.getMessage)))
         }
@@ -75,11 +75,13 @@ trait Routes extends DTOFormats with DefaultJsonProtocol {
   }
 
   private def getOffers(app: Application)(implicit ec: ExecutionContext, d: Timeout): Route = path("offer") {
-    get {
-      onComplete(app.controller ? GetAll()) {
-        case util.Success(http.Found(offers)) ⇒ complete((OK, http.Found(offers)))
-        case util.Success(_) ⇒ complete((NotAcceptable, Error("Unexpected result")))
-        case util.Failure(exception) ⇒ complete((InternalServerError, Error(exception.getMessage)))
+    pathEnd {
+      get {
+        onComplete(app.controller ? GetAll()) {
+          case util.Success(http.Found(offers)) ⇒ complete((OK, offers))
+          case util.Success(_) ⇒ complete((NotAcceptable, Error("Unexpected result")))
+          case util.Failure(exception) ⇒ complete((InternalServerError, Error(exception.getMessage)))
+        }
       }
     }
   }

@@ -12,5 +12,6 @@ trait Versions {
   final protected def akkaTestKitVer = "10.0.9"
   final protected def levelDbVer = "0.7"
   final protected def levelDbJNIVer = "1.8"
+  final protected def logbackVer = "1.2.3"
 
 }

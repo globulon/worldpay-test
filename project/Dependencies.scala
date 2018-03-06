@@ -20,4 +20,6 @@ trait Dependencies { self: Versions =>
   final protected def levelDbJNI: ModuleID = "org.fusesource.leveldbjni" % "leveldbjni-all" % levelDbJNIVer withSources()
   final protected def akkaHTTP: ModuleID  = "com.typesafe.akka" %% "akka-http" % akkaHTTPVersion withSources()
   final protected def akkaJson: ModuleID  = "com.typesafe.akka" %% "akka-http-spray-json" % akkaHTTPVersion withSources()
+  final protected def logback: ModuleID = "ch.qos.logback" % "logback-classic" % logbackVer withSources()
+
 }

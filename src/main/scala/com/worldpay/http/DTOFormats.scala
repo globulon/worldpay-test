@@ -18,6 +18,7 @@ trait DTOFormats {
     override def write(dateTime: LocalDateTime): JsValue = JsString(ISO_LOCAL_DATE_TIME.format(dateTime))
   }
   implicit final protected def formatOfferDescription: RootJsonFormat[OfferCreation] = jsonFormat3(OfferCreation.apply)
+  implicit final protected def formatOfferUpdate: RootJsonFormat[OfferUpdate] = jsonFormat2(OfferUpdate.apply)
   implicit final protected def formatOfferID: RootJsonFormat[OfferID] = jsonFormat1(OfferID.apply)
   implicit final protected def formatOffer: RootJsonFormat[Offer] = jsonFormat4(Offer.apply)
   implicit final protected def formatProcessed: RootJsonFormat[Processed] = jsonFormat0(Processed.apply)
