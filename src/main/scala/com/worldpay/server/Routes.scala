@@ -7,8 +7,8 @@ import akka.http.scaladsl.server.Directives.{as, complete, entity, get, onComple
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
+import com.worldpay.http
 import com.worldpay.http._
-import com.worlplay.service._
 import spray.json._
 
 import scala.concurrent.ExecutionContext
@@ -26,8 +26,12 @@ trait Routes extends DTOFormats with DefaultJsonProtocol {
 
   private def postOffer(app: Application)(implicit ec: ExecutionContext, d: Timeout): Route = path("offer") {
     post {
-      entity(as[OfferDescription]) { request ⇒
-        onComplete(app.controller ? Push(request)) { _ ⇒ complete((OK, Offer())) }
+      entity(as[OfferCreation]) { request ⇒
+        onComplete(app.controller ? Push(request)) {
+          case util.Success(http.Created(offer)) ⇒ complete((OK, List(offer)))
+          case util.Success(_) ⇒ complete((NotAcceptable, Error("Unexpected result")))
+          case util.Failure(exception) ⇒ complete((InternalServerError, Error(exception.getMessage)))
+        }
       }
     }
   }
@@ -35,8 +39,11 @@ trait Routes extends DTOFormats with DefaultJsonProtocol {
   private def putOffer(app: Application)(implicit ec: ExecutionContext, d: Timeout): Route = pathPrefix("offer") {
     path(LongNumber) { value ⇒
       put {
-        entity(as[OfferDescription]) { desc ⇒
-          onComplete(app.controller ? Put(OfferID(value), desc)) { _ ⇒ complete((Accepted, Offer())) }
+        entity(as[OfferCreation]) { desc ⇒
+          complete {
+            app.controller ! Put(OfferID(value), desc)
+            (Accepted, Processed())
+          }
         }
       }
     }
@@ -57,14 +64,23 @@ trait Routes extends DTOFormats with DefaultJsonProtocol {
   private def getOffer(app: Application)(implicit ec: ExecutionContext, d: Timeout): Route = pathPrefix("offer") {
     path(LongNumber) { value ⇒
       get {
-        onComplete(app.controller ? Get(OfferID(value))) { _ ⇒ complete((OK, Offer())) }
+        onComplete(app.controller ? Get(OfferID(value))) {
+          case util.Success(http.Found(Nil)) ⇒ complete((NotFound, http.Found(Nil)))
+          case util.Success(http.Found(offers)) ⇒ complete((OK, http.Found(offers)))
+          case util.Success(_) ⇒ complete((NotAcceptable, Error("Unexpected result")))
+          case util.Failure(exception) ⇒ complete((InternalServerError, Error(exception.getMessage)))
+        }
       }
     }
   }
 
   private def getOffers(app: Application)(implicit ec: ExecutionContext, d: Timeout): Route = path("offer") {
     get {
-      onComplete(app.controller ? GetAll()) { _ ⇒ complete((OK, List(Offer()))) }
+      onComplete(app.controller ? GetAll()) {
+        case util.Success(http.Found(offers)) ⇒ complete((OK, http.Found(offers)))
+        case util.Success(_) ⇒ complete((NotAcceptable, Error("Unexpected result")))
+        case util.Failure(exception) ⇒ complete((InternalServerError, Error(exception.getMessage)))
+      }
     }
   }
 }

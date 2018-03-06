@@ -16,7 +16,8 @@ trait Dependencies { self: Versions =>
   final protected def akkaClusterTools: ModuleID = "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion withSources()
   final protected def akkaClusterMetrics: ModuleID = "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion withSources()
   final protected def akkaClusterSharding: ModuleID = "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion withSources()
-
+  final protected def levelDb: ModuleID = "org.iq80.leveldb" % "leveldb" % levelDbVer withSources()
+  final protected def levelDbJNI: ModuleID = "org.fusesource.leveldbjni" % "leveldbjni-all" % levelDbJNIVer withSources()
   final protected def akkaHTTP: ModuleID  = "com.typesafe.akka" %% "akka-http" % akkaHTTPVersion withSources()
   final protected def akkaJson: ModuleID  = "com.typesafe.akka" %% "akka-http-spray-json" % akkaHTTPVersion withSources()
 }

@@ -1,5 +1,11 @@
 package com.worldpay.domain
 
+import java.time.LocalDateTime
+
 import scala.language.{higherKinds, implicitConversions, postfixOps}
 
-case class Offer()
+sealed trait Entity {
+  def id: Long
+}
+
+case class Offer(override val id: Long, price: BigDecimal, descriptions: List[String], endDate: LocalDateTime) extends Entity

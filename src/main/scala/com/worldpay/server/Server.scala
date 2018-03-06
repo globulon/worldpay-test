@@ -1,16 +1,11 @@
 package com.worldpay.server
 
-import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
-import com.worldpay.http
 
 import scala.io.StdIn
 import scala.language.{higherKinds, implicitConversions, postfixOps}
 
-trait Bootstrap { self: Environment ⇒
-  final protected def controller(implicit sys: ActorSystem): ActorRef =
-    system.actorOf(Props(http.controller), "Controller")
-}
+
 
 object Server extends Routes with Environment with Bootstrap {
   def main(args: Array[String]) {

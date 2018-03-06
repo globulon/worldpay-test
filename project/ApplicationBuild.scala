@@ -11,6 +11,6 @@ object ApplicationBuild extends Build with BuildSettings
     file("."),
     settings = buildSettings ++
       Seq(resolvers ++= repos) ++
-      Seq(libraryDependencies ++= Seq(scalaz, akkaHTTP, akkaTestKit, scalaTesting % "test", akkaLogging, akkaJson))
+      Seq(libraryDependencies ++= Seq(scalaz, akkaHTTP, akkaTestKit, akkaPersistence, levelDb, levelDbJNI, scalaTesting % "test", akkaLogging, akkaJson))
   ).settings(allJavaOptions:_*).enablePlugins(JavaServerAppPackaging)
 }

@@ -10,4 +10,7 @@ trait Versions {
   final protected def akkaVersion = "2.4.19"
   final protected def akkaHTTPVersion = "10.0.9"
   final protected def akkaTestKitVer = "10.0.9"
+  final protected def levelDbVer = "0.7"
+  final protected def levelDbJNIVer = "1.8"
+
 }
