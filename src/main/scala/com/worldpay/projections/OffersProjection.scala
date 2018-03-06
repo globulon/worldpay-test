@@ -7,8 +7,8 @@ import com.worldpay.domain.Offer
 import scala.language.{higherKinds, implicitConversions, postfixOps}
 
 protected[projections] case class OffersProjection(offers: Map[Long, Offer] = Map.empty, nextId : Long = 1L) {
-  def create(byId: Long): (BigDecimal, List[String], Long) ⇒ OffersProjection =
-    (p, ds, d) ⇒ OffersProjection(offers + (byId → Offer(byId, p, ds, LocalDateTime.now().plusSeconds(d))), byId + 1)
+  def create(byId: Long): (BigDecimal, List[String], LocalDateTime) ⇒ OffersProjection =
+    (p, ds, d) ⇒ OffersProjection(offers + (byId → Offer(byId, p, ds, d)), byId + 1)
 
   def update(byId: Long): (Option[BigDecimal], Option[List[String]]) ⇒ OffersProjection =   (p, ds) ⇒
     get(byId).map { updatePrice(p) andThen updateDescriptions(ds) }

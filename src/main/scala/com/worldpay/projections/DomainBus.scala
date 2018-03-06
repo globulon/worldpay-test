@@ -1,5 +1,7 @@
 package com.worldpay.projections
 
+import java.time.LocalDateTime
+
 import akka.japi.Util
 import akka.persistence.fsm.PersistentFSM
 import akka.persistence.fsm.PersistentFSM.FSMState
@@ -24,13 +26,12 @@ sealed trait View
 case class Offers(subset: List[Offer])
 
 sealed trait DomainEvent
-case class OfferCreated(id: Long, price: BigDecimal, descriptions: List[String], delay: Long) extends DomainEvent
+case class OfferCreated(id: Long, price: BigDecimal, descriptions: List[String], endDate: LocalDateTime) extends DomainEvent
 case class OfferUpdated(id: Long, price: Option[BigDecimal], descriptions: Option[List[String]]) extends DomainEvent
 case class OfferDeleted(id: Long) extends DomainEvent
 case class OfferCanceled(id: Long) extends DomainEvent
 
 sealed trait ProjectionState extends FSMState
-//case object Init extends ProjectionState { override def identifier: String = "Init" }
 case object Running extends ProjectionState { override def identifier: String = "Running" }
 
 
@@ -41,23 +42,9 @@ protected[projections] class DomainBus extends PersistentFSM[ProjectionState, Of
 
   startWith(Running, OffersProjection())
 
-//  when(Init) {
-//    case Event(CreateOffer(p, ds, d), OffersProjection(_, nextId)) ⇒
-//      val snd = sender
-//      goto(Running) applying OfferCreated(nextId, p, ds, d) forMax(1 second)
-//    case Event(UpdateOffer(id, p, ds), OffersProjection(_, _)) ⇒
-//      goto(Running) applying OfferUpdated(id, p, ds) forMax(1 second)
-//    case Event(DeleteOffer(id), OffersProjection(_, _)) ⇒
-//      goto(Running) applying OfferDeleted(id) forMax(1 second)
-//    case Event(CancelOffer(id), OffersProjection(_, _)) ⇒
-//      goto(Running) applying OfferCanceled(id) forMax(1 second)
-//    case Event(Shutdown(), _) ⇒
-//      stop()
-//  }
-
   when(Running) {
     case Event(CreateOffer(p, ds, d), OffersProjection(_, nextId)) ⇒
-      stay applying OfferCreated(nextId, p, ds, d) forMax(1 second)
+      stay applying OfferCreated(nextId, p, ds, LocalDateTime.now().plusSeconds(d)) forMax(1 second)
     case Event(UpdateOffer(id, p, ds), projection) ⇒
       projection.get(id).map { _ ⇒ stay applying OfferUpdated(id, p, ds) forMax(1 second) }.getOrElse(stay)
     case Event(DeleteOffer(id), projection) ⇒
