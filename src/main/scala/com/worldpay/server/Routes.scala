@@ -18,7 +18,7 @@ trait Routes extends DTOFormats with DefaultJsonProtocol {
   final protected def routes(app: Application)(implicit ec: ExecutionContext, d: Timeout): Route =
     index ~ postOffer(app) ~ putOffer(app) ~ deleteOffer(app) ~ getOffer(app) ~ getOffers(app) ~ cancelOffer(app)
 
-  private def index = path("hello") {
+  private def index = path("index") {
     get {
       complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Say hello to akka-http</h1>"))
     }
