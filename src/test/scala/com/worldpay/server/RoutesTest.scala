@@ -44,7 +44,6 @@ final class RoutesTest extends WordSpec
           val List(updated) = responseAs[List[Offer]]
           updated.price must be(BigDecimal(400))
           updated.descriptions must be(List("VWX"))
-
         }
       }
     }
@@ -77,10 +76,29 @@ final class RoutesTest extends WordSpec
         offers.size must be(size)
       }
     }
+
+    "Cancel offer" in {
+      Post("/offer", HttpEntity(`application/json`, offerCreation.compactPrint)) ~> routes(app) ~> check {
+        status must be(OK)
+        val List(offer) = responseAs[List[Offer]]
+
+        Put(s"""/offer/${offer.id}/cancellation""") ~> routes(app) ~> check {
+          status must be(Accepted)
+        }
+        Range(1, 50).flatMap { _ ⇒ getOffer(offer.id).map(_.expired) }.find(_ == true) must be ('defined)
+      }
+    }
+
   }
 
   private def offers = Get("/offer") ~> routes(app) ~> check {
     status must be(OK)
     responseAs[List[Offer]]
   }
+
+  private def getOffer(id: Long): Option[Offer] = Get(s"""/offer/$id""") ~> routes(app) ~> check {
+    status must be(OK)
+    responseAs[List[Offer]].headOption
+  }
+
 }

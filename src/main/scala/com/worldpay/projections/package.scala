@@ -6,5 +6,5 @@ import scala.language.{higherKinds, implicitConversions, postfixOps}
 
 package object projections {
   def bus(implicit sys: ActorSystem): ActorRef =
-    sys.actorOf(Props(new DomainBus), "Bus")
+    sys.actorOf(Props(new DomainDispatcher), "Bus")
 }

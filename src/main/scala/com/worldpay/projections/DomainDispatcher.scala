@@ -35,7 +35,7 @@ sealed trait ProjectionState extends FSMState
 case object Running extends ProjectionState { override def identifier: String = "Running" }
 
 
-protected[projections] class DomainBus extends PersistentFSM[ProjectionState, OffersProjection, DomainEvent]  {
+protected[projections] class DomainDispatcher extends PersistentFSM[ProjectionState, OffersProjection, DomainEvent]  {
   override def persistenceId = "DomainBus"
 
   override def domainEventClassTag: ClassTag[projections.DomainEvent] = classTag[projections.DomainEvent]

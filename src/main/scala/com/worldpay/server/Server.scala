@@ -6,7 +6,6 @@ import scala.io.StdIn
 import scala.language.{higherKinds, implicitConversions, postfixOps}
 
 
-
 object Server extends Routes with Environment with Bootstrap {
   def main(args: Array[String]) {
     val bindingFuture = Http().bindAndHandle(routes(Application(controller)), "localhost", 8080)

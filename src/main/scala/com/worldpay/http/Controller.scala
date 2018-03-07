@@ -20,6 +20,8 @@ protected[http] final class Controller(val bus: ActorRef)(implicit val t: Timeou
       snd ! Offers(all).translateTo[Found]
     case Update(OfferID(value), OfferUpdate(p, desc)) ⇒
       bus ! UpdateOffer(value, p, desc)
+    case Cancel(OfferID(value)) ⇒
+      bus ! CancelOffer(value)
     case Delete(OfferID(value)) ⇒
       bus ! DeleteOffer(value)
     case Get(OfferID(value)) ⇒

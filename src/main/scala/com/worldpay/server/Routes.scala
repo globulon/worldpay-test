@@ -16,7 +16,7 @@ import scala.language.{higherKinds, implicitConversions, postfixOps}
 
 trait Routes extends DTOFormats with DefaultJsonProtocol {
   final protected def routes(app: Application)(implicit ec: ExecutionContext, d: Timeout): Route =
-    index ~ postOffer(app) ~ putOffer(app) ~ deleteOffer(app) ~ getOffer(app) ~ getOffers(app)
+    index ~ postOffer(app) ~ putOffer(app) ~ deleteOffer(app) ~ getOffer(app) ~ getOffers(app) ~ cancelOffer(app)
 
   private def index = path("hello") {
     get {
@@ -44,6 +44,17 @@ trait Routes extends DTOFormats with DefaultJsonProtocol {
             app.controller ! Update(OfferID(value), desc)
             (Accepted, Processed())
           }
+        }
+      }
+    }
+  }
+
+  private def cancelOffer(app: Application)(implicit ec: ExecutionContext, d: Timeout): Route = pathPrefix("offer") {
+    path(LongNumber / "cancellation") { value ⇒
+      put {
+        complete {
+          app.controller ! Cancel(OfferID(value))
+          (Accepted, Processed())
         }
       }
     }
