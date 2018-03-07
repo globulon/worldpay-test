@@ -50,49 +50,37 @@ final class RoutesTest extends WordSpec
     }
 
     "GET all offers" in {
+      val size = offers.size
 
-      Get("/offer", HttpEntity(`application/json`, offerCreation.compactPrint)) ~> routes(app) ~> check {
-        status must be(OK)
-        val size = responseAs[List[Offer]].size
-
-        Range(1, 10) foreach { _ ⇒
-          Post("/offer", HttpEntity(`application/json`, offerCreation.compactPrint)) ~> routes(app) ~> check {
-            status must be(OK)
-          }
-        }
-
-        Get("/offer") ~> routes(app) ~> check {
+      Range(1, 10) foreach { _ ⇒
+        Post("/offer", HttpEntity(`application/json`, offerCreation.compactPrint)) ~> routes(app) ~> check {
           status must be(OK)
-          responseAs[List[Offer]].size must be(size + 9)
         }
       }
+
+      offers.size must be(size + 9)
     }
 
-      "DELETE offer" in {
-        Get("/offer", HttpEntity(`application/json`, offerCreation.compactPrint)) ~> routes(app) ~> check {
-          status must be(OK)
-          val size = responseAs[List[Offer]].size
+    "DELETE offer" in {
+      val size = offers.size
 
-          Post("/offer", HttpEntity(`application/json`, offerCreation.compactPrint)) ~> routes(app) ~> check {
-            status must be(OK)
-            val List(offer) = responseAs[List[Offer]]
+      Post("/offer", HttpEntity(`application/json`, offerCreation.compactPrint)) ~> routes(app) ~> check {
+        status must be(OK)
+        val List(offer) = responseAs[List[Offer]]
 
-            Get(s"/offer") ~> routes(app) ~> check {
-              status must be(OK)
-              responseAs[List[Offer]].size must be(size + 1)
-            }
+        offers.size must be(size + 1)
 
-            Delete(s"""/offer/${offer.id}""")  ~> routes(app) ~> check {
-              status must be(Accepted)
-            }
-
-            Get(s"/offer") ~> routes(app) ~> check {
-              status must be(OK)
-              responseAs[List[Offer]].size must be(size)
-            }
-          }
+        Delete(s"""/offer/${offer.id}""") ~> routes(app) ~> check {
+          status must be(Accepted)
         }
-      }
 
+        offers.size must be(size)
+      }
+    }
+  }
+
+  private def offers = Get("/offer") ~> routes(app) ~> check {
+    status must be(OK)
+    responseAs[List[Offer]]
   }
 }

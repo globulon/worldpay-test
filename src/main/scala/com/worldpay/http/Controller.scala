@@ -28,7 +28,5 @@ protected[http] final class Controller(val bus: ActorRef)(implicit val t: Timeou
     case GetAll() ⇒
       val snd = sender
       (bus ? GetOffers()) map { Received(_, snd) } pipeTo self
-
   }
 }
-
